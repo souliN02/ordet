@@ -61,6 +61,8 @@ const en = {
     streak: "Current streak",
     best: "Best streak",
     distribution: "Guess distribution",
+    /** Read out for the X line: games lost */
+    unsolved: "Not solved",
     none: "No games yet. Your results will show up here.",
     next: "Next word in",
     share: "Share",
@@ -138,6 +140,7 @@ const da: UiStrings = {
     streak: "Nuværende serie",
     best: "Bedste serie",
     distribution: "Fordeling af gæt",
+    unsolved: "Ikke løst",
     none: "Ingen spil endnu. Dine resultater kommer til at stå her.",
     next: "Næste ord om",
     share: "Del",

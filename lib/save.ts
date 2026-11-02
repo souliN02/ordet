@@ -57,6 +57,8 @@ function parseGame(v: unknown, lang: Lang, mode: Mode): Game | undefined {
 
 function parseStats(v: unknown): Stats | undefined {
   if (!isObj(v) || !isCount(v.played) || !isCount(v.wins) || !isCount(v.streak) || !isCount(v.best) || !isDay(v.lastDay)) return undefined;
+  // The panel counts the games that weren't solved as played minus wins
+  if (v.wins > v.played) return undefined;
   const guesses = Array.isArray(v.guesses) && v.guesses.length === MAX_GUESSES && v.guesses.every(isCount) ? (v.guesses as number[]) : EMPTY_STATS.guesses;
   return { played: v.played, wins: v.wins, streak: v.streak, best: v.best, guesses: [...guesses], lastDay: v.lastDay };
 }

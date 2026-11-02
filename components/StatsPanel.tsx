@@ -1,5 +1,5 @@
 import { RotateCcw, Share2 } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { LANG_NAMES, type UiStrings } from "@/data/ui";
 import { status, type Game } from "@/lib/game";
 import type { Lang } from "@/lib/i18n";
@@ -31,7 +31,8 @@ export default function StatsPanel({
   // Shown here rather than as a toast, which would sit behind the dialog
   const [note, setNote] = useState("");
   const state = game ? status(game) : "playing";
-  const most = Math.max(1, ...stats.guesses);
+  const unsolved = stats.played - stats.wins;
+  const most = Math.max(1, ...stats.guesses, unsolved);
   const numbers: [number, string][] = [
     [stats.played, ui.stats.played],
     [winRate(stats), ui.stats.winRate],
@@ -60,22 +61,21 @@ export default function StatsPanel({
         <p className="text-sm text-[var(--muted)]">{ui.stats.none}</p>
       ) : (
         <ol className="space-y-1">
-          {stats.guesses.map((count, i) => {
-            const latest = state === "won" && game?.guesses.length === i + 1;
-            return (
-              <li key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-3 tabular-nums">{i + 1}</span>
-                <span className="flex-1">
-                  <span
-                    className="flex min-w-7 justify-end rounded-sm px-2 py-0.5 font-semibold text-white tabular-nums"
-                    style={{ width: `${(count / most) * 100}%`, background: latest ? "var(--correct)" : "var(--absent)" }}
-                  >
-                    {count}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
+          {stats.guesses.map((count, i) => (
+            <Row key={i} label={i + 1} count={count} most={most} color={state === "won" && game?.guesses.length === i + 1 ? "var(--correct)" : "var(--absent)"} />
+          ))}
+          {/* The games that weren't solved, marked X as in a shared result */}
+          <Row
+            label={
+              <>
+                <span aria-hidden>X</span>
+                <span className="sr-only">{ui.stats.unsolved}</span>
+              </>
+            }
+            count={unsolved}
+            most={most}
+            color={state === "lost" ? "var(--present)" : "var(--absent)"}
+          />
         </ol>
       )}
 
@@ -109,5 +109,19 @@ export default function StatsPanel({
         </div>
       )}
     </div>
+  );
+}
+
+/** A line of the guess distribution, its bar as long as its share of the most common result */
+function Row({ label, count, most, color }: { label: ReactNode; count: number; most: number; color: string }) {
+  return (
+    <li className="flex items-center gap-2 text-sm">
+      <span className="w-3 tabular-nums">{label}</span>
+      <span className="flex-1">
+        <span className="flex min-w-7 justify-end rounded-sm px-2 py-0.5 font-semibold text-white tabular-nums" style={{ width: `${(count / most) * 100}%`, background: color }}>
+          {count}
+        </span>
+      </span>
+    </li>
   );
 }

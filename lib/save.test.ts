@@ -48,6 +48,12 @@ describe("parseSave", () => {
     expect(save.stats["da-daily"]).toBeUndefined();
   });
 
+  it("drops statistics with more wins than games", () => {
+    const save = parseSave({ stats: { "en-daily": { ...EMPTY_STATS, played: 2, wins: 3 }, "da-daily": { ...EMPTY_STATS, played: 3, wins: 3 } } });
+    expect(save.stats["en-daily"]).toBeUndefined();
+    expect(save.stats["da-daily"]).toEqual({ ...EMPTY_STATS, played: 3, wins: 3 });
+  });
+
   it("keeps only the latest recent answers", () => {
     const many = Array.from({ length: RECENT_LIMIT + 5 }, (_, i) => (i % 2 ? "crane" : "slate"));
     expect(parseSave({ recent: { en: many } }).recent.en).toHaveLength(RECENT_LIMIT);

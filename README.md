@@ -40,7 +40,7 @@ The daily word changes at the player's own midnight.
 **And the rest:**
 
 - Hard mode: every revealed hint has to be used in the next guesses.
-- Statistics per language and mode: games played, win rate, current and best streak, and how many guesses each win took.
+- Statistics per language and mode: games played, win rate, current and best streak, how many guesses each win took, and how many games weren't solved.
 - Sharing without spoilers: the result as emoji squares, through the share sheet on phones and the clipboard elsewhere.
 - Dark and high contrast themes. Dark follows the system setting until you pick one, and high contrast swaps green and yellow for orange and blue.
 - The physical keyboard works, every guess is read out to screen readers, the dialogs keep focus where it belongs, and animations stop when the system asks for reduced motion.

@@ -27,7 +27,11 @@ export default function Modal({ open, title, closeLabel, onClose, children }: { 
       ref={ref}
       aria-labelledby={titleId}
       className="modal"
-      onClose={onClose}
+      // Escape closes the dialog on its own, so the parent is told. A close the parent asked for isn't echoed back:
+      // when it switches dialogs, this event comes after the next one opened, and would close that one too.
+      onClose={() => {
+        if (open) onClose();
+      }}
       onClick={(e) => {
         if (e.target === ref.current) onClose();
       }}

@@ -1,0 +1,345 @@
+@import "tailwindcss";
+
+/* ─── Theme ───
+   Light by default, dark when the system asks for it, and data-theme on <html>
+   when the player picked one. The tile colors keep white letters at 3:1 or more. */
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --fg: #1b1c1f;
+  --muted: #676b73;
+  --line: #e2e4e8;
+  --tile-border: #d5d8dd;
+  --tile-filled: #878b92;
+  --key: #dde0e5;
+  --key-fg: #1b1c1f;
+  --panel: #ffffff;
+  --toast: #1b1c1f;
+  --toast-fg: #ffffff;
+  --track: #e6e8eb;
+  --pill: #ffffff;
+  --correct: #3d9a5b;
+  --present: #b8891c;
+  --absent: #787c84;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* The dark values twice: once for the system setting, once for the player's pick */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #121316;
+    --fg: #f1f2f4;
+    --muted: #9da2aa;
+    --line: #2c2e33;
+    --tile-border: #393c42;
+    --tile-filled: #62666d;
+    --key: #7c8089;
+    --key-fg: #ffffff;
+    --panel: #1c1d21;
+    --toast: #f1f2f4;
+    --toast-fg: #121316;
+    --track: #232428;
+    --pill: #45484f;
+    --correct: #3a8a52;
+    --present: #a8801f;
+    --absent: #393c42;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121316;
+  --fg: #f1f2f4;
+  --muted: #9da2aa;
+  --line: #2c2e33;
+  --tile-border: #393c42;
+  --tile-filled: #62666d;
+  --key: #7c8089;
+  --key-fg: #ffffff;
+  --panel: #1c1d21;
+  --toast: #f1f2f4;
+  --toast-fg: #121316;
+  --track: #232428;
+  --pill: #45484f;
+  --correct: #3a8a52;
+  --present: #a8801f;
+  --absent: #393c42;
+}
+
+/* For color vision deficiency: orange and blue instead of green and yellow */
+:root[data-contrast="high"] {
+  --correct: #e2662a;
+  --present: #3b82c4;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+  button {
+    cursor: pointer;
+  }
+
+  /* In the base layer, so a Tailwind utility like outline-none can still opt out */
+  :focus-visible {
+    outline: 2px solid var(--correct);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  /* ─── Board ───
+     The board fills whatever height is left between the header and the keyboard
+     (a size container), keeps its 5:6 shape, and the letters scale with it. */
+  .play {
+    container-type: size;
+  }
+
+  .board {
+    container-type: inline-size;
+    width: min(350px, 100cqw - 24px, (100cqh - 16px) * 5 / 6);
+    aspect-ratio: 5 / 6;
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 5px;
+  }
+
+  .board-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+  }
+
+  .tile {
+    --mark: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--tile-border);
+    background: var(--bg);
+    color: var(--fg);
+    font-weight: 700;
+    font-size: calc((100cqw - 20px) / 10);
+    line-height: 1;
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  .tile[data-filled] {
+    border-color: var(--tile-filled);
+  }
+
+  /* The row being typed: any tile can be tapped to put the cursor there */
+  button.tile {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  /* The cursor: where the next letter goes, underlined like a caret */
+  .tile[data-cursor] {
+    border-color: var(--fg);
+    box-shadow: inset 0 -4px 0 var(--fg);
+  }
+
+  .tile[data-mark="correct"],
+  .key[data-mark="correct"] {
+    --mark: var(--correct);
+  }
+  .tile[data-mark="present"],
+  .key[data-mark="present"] {
+    --mark: var(--present);
+  }
+  .tile[data-mark="absent"],
+  .key[data-mark="absent"] {
+    --mark: var(--absent);
+  }
+
+  .tile[data-mark] {
+    background: var(--mark);
+    border-color: var(--mark);
+    color: #fff;
+  }
+
+  /* The flip: the tile turns on its edge and comes back in its color.
+     "both" keeps the unrevealed look while it waits for its turn. */
+  .tile[data-reveal] {
+    animation: tile-reveal 500ms ease-in-out both;
+    animation-delay: calc(var(--i) * 300ms);
+  }
+
+  /* Small tiles in the help and the logo */
+  .tile-sm {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.35rem;
+  }
+
+  .tile-xs {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0;
+    border-radius: 3px;
+    font-size: 0.95rem;
+  }
+
+  /* ─── Keyboard ─── */
+  .key {
+    --key-h: 58px;
+    flex: 1 1 0;
+    min-width: 0;
+    height: var(--key-h);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: var(--key);
+    color: var(--key-fg);
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    touch-action: manipulation;
+    user-select: none;
+    transition: background-color 150ms;
+  }
+
+  .key[data-wide] {
+    flex-grow: 1.6;
+    font-size: 0.75rem;
+  }
+
+  .key[data-mark] {
+    background: var(--mark);
+    color: #fff;
+  }
+
+  .key:active {
+    filter: brightness(0.9);
+  }
+
+  @media (max-height: 680px) {
+    .key {
+      --key-h: 50px;
+    }
+  }
+  @media (max-height: 560px) {
+    .key {
+      --key-h: 42px;
+    }
+  }
+
+  /* ─── Dialogs ─── */
+  .modal {
+    margin: auto;
+    padding: 0;
+    width: min(440px, 100vw - 24px);
+    max-height: min(680px, 100dvh - 24px);
+    border-radius: 12px;
+    background: var(--panel);
+    color: var(--fg);
+    box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
+  }
+
+  .modal[open] {
+    animation: modal-in 160ms ease-out;
+  }
+
+  .modal::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+
+  .switch {
+    position: relative;
+    flex: none;
+    width: 2.75rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background: var(--tile-filled);
+    transition: background-color 150ms;
+  }
+
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 999px;
+    background: #fff;
+    transition: transform 150ms;
+  }
+
+  .switch[aria-checked="true"] {
+    background: var(--correct);
+  }
+
+  .switch[aria-checked="true"]::after {
+    transform: translateX(1.25rem);
+  }
+
+  .toast {
+    animation: toast-in 120ms ease-out;
+  }
+}
+
+@keyframes tile-reveal {
+  0% {
+    transform: rotateX(0);
+    background: var(--bg);
+    border-color: var(--tile-filled);
+    color: var(--fg);
+  }
+  50% {
+    transform: rotateX(-90deg);
+    background: var(--bg);
+    border-color: var(--tile-filled);
+    color: var(--fg);
+  }
+  50.01% {
+    transform: rotateX(-90deg);
+    background: var(--mark);
+    border-color: var(--mark);
+    color: #fff;
+  }
+  100% {
+    transform: rotateX(0);
+    background: var(--mark);
+    border-color: var(--mark);
+    color: #fff;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

@@ -1,0 +1,2 @@
+# Danish slurs: rejected as guesses too.
+neger negre

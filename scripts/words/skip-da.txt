@@ -1,0 +1,30 @@
+# Danish words that are fine as guesses but never the answer.
+
+# Archaic or formal function words
+liden megen øvrig såvel sågar såsom heraf derpå endog herom hvori herpå deraf derud atter desto
+henne indad sinde somme heden helme utide mente
+
+# Regions, nationalities, religions and names
+fynsk fynbo kroat polak islam koran burka bibel thybo inuit asiat osman hindu tamil cæsar satan
+søren sidse
+
+# Crude, insulting, sexual or too grim
+porno bøsse tisse skide narko møgso idiot svine kvæle myrde dræbe slave abort afdød sexet penis
+pisse numse lokum orgie fatwa jihad sheik bisse tosse
+
+# English loans that read as English
+house fight power event check match image input cover heade geare seede coach blues march jeans
+force grand grant final suite hertz franc royal heavy foyer creme banko speed donna print maile
+green crazy hacke logge lease scoop boome joint rocke funky zoome caste light touch truck swing
+sound peppe modus omega zappe still flash petit chick prime clean pushe javel setup entre
+
+# Rare, dialect, or mostly seen as an inflected form of another word
+byret uland iføre fænge tørne makke jobbe misse poppe hitte kikse rinde stede navne hulle kante
+laste borde stile giver inder enzym korte dumme stage brune krebs nette værke menig plane lange
+blade stift østre fører kører lavet længe hører sørme titte nuvel skriv dages mulle gange behag
+flæng gisne brask mande stive forgå geled afvej tirre bosse zobel sunde stene pifte brist lødig
+pible fager skæve palle rutte avler genne gemal barre basse lejre brase briks hegne busse punge
+spile opbud kølne junge otium opsat
+batte bilde bitte brast brugs brugt bænke derop herop herud diske doble flage flest fosse halse
+hamle lakke lefle linke malte mekka mudre neden opret rable rappe sakke selen skude skyts spang
+spænd syrer perse style penny tæske

@@ -1,0 +1,43 @@
+# English words that are fine as guesses but never the answer.
+
+# Names, places, brands and capitalized words
+alamo argus ariel babel banco benny bilbo billy bobby brant brent britt brock buffy burgh burke
+calif campo chang chevy chico chile china chino cisco colin comte coney congo conte costa cotta
+curie derry devon dolce donna dutch emmet erica fermi firth fitch gemma genoa ginny greek harry
+henry hertz hogan honda horst hurst iliad jacky japan jenny jerry jesse jimmy jones judas kelly
+kerry kyrie lacey laker laura leary leone levin lewis liang liber libra lindy logan lotte louie
+louis lough macon madre maria marge mavis mayan mecca merle mille mirza moira molly monde monte
+morse nance nancy nelly paris pedro perry peter petit pilar ralph razer riley roger roman romeo
+rowan santo savoy seton shawn shiva silva snell sodom soyuz swede swiss tammy terry tesla texas
+tommy tonga torah trois twain waugh weber welch welsh wigan xerox yahoo zaire gulag aggie amiga
+amigo sahib hakim hamza pasha mufti kanji massa masse mater modus manus mamma momma sally willy
+
+# Obscure, technical, archaic, foreign or regional
+actin ahold alkyl amino amour aunty avant beaux belle bonne bonny brill carte cline comer creme
+crore doggo duper edema ester ethyl filet flack footy fritz gauss gimme gonzo haute hydro hyper
+infra inter ionic laird layup lazar lumen lupin lupus micro neath nitro olden ortho pease pinot
+playa prima primo quasi recon reeve saith seine senna shalt summa supra sutra swain swami takin
+terra thane trans ultra vitae voila volta walla wally padre aloha sheik femme garth kraft
+largo lolly barre psych
+adios algal altho amine anima anion bally betta bight biter bitty bolus boson brava bream bursa
+busby cilia clary codec corby covey crump cuppa degas delft devel dewar dicky dilly dobby donne
+ducky durst ender enrol fiver frith ghazi gilly glebe griff hafiz hallo homey hoppy hoyle karat
+lapis leger lemma lidar lisle luger magus mamie mensa mezzo mondo naira nawab nicol nitty orang
+phage polis prost quint rabat rajah rance redox redux rishi riven rouen sacra saran saree sault
+scape scrip senor septa skeet solon speer stade stipe strep sturt swamy tabor tanto tatar tater
+tetra thunk tutti varna verso vichy vroom washy zonal
+
+# British spellings (the American one is an answer)
+fibre litre metre sabre odour mould mitre ochre
+
+# Plurals, comparatives and agent nouns the filter missed
+gurus menus minis semis kiwis taxis nazis elves drier fewer newer older wider safer finer nicer
+rarer truer freer wiser cuter paler carer roper trier taker payer saver riser giver faker eater
+flier hater
+
+# Crude, sexual, insulting or too grim for a breakfast puzzle
+bitch boner booby busty butch dildo enema fanny horny kinky panty penis porno pubic pussy semen
+sperm titty whore prick bimbo nappy gypsy gipsy lynch jihad queer ponce sissy slave idiot moron
+fecal feces urine bowel mucus fetal fetus vomit lusty spank harem hippy randy patsy paddy sonny
+missy labia vulva wench pansy pygmy leper mammy porky spunk fatwa ganja sarin grope hunky fatty
+obese chemo

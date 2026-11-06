@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
+import { LANG_SCRIPT } from "@/lib/i18n";
 import { SAVE_KEY } from "@/lib/save";
 import { AUTHOR, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -34,10 +35,11 @@ const THEME_SCRIPT = `try{var s=JSON.parse(localStorage.getItem(${JSON.stringify
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    // The theme script and the game set attributes on <html> that the server can't know
+    // The scripts and the game set attributes on <html> that the server can't know
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: LANG_SCRIPT }} />
       </head>
       <body>
         {children}

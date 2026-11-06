@@ -81,7 +81,11 @@ export default function StatsPanel({
 
       {game && state !== "playing" && (
         <div className="mt-6 border-t border-[var(--line)] pt-5">
-          {state === "lost" && <p className="mb-4 text-center font-semibold">{ui.lost(game.solution)}</p>}
+          {state === "lost" && (
+            <p className="mb-4 text-center font-semibold" translate="no">
+              {ui.lost(game.solution)}
+            </p>
+          )}
           <div className="flex items-center gap-3">
             {mode === "daily" ? (
               <div className="flex-1 text-center">

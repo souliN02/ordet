@@ -7,6 +7,10 @@ import { MAX_GUESSES, WORD_LENGTH } from "@/lib/words";
 /** See Keyboard: a tap on a tile mustn't leave focus on it, or the next Enter would press the tile instead of guessing */
 const keepFocus = (e: MouseEvent) => e.preventDefault();
 
+/**
+ * One letter of the game. It's marked translate="no" because a browser translating the page
+ * would read a lone letter as a word: into Danish, I became JEG, U became DIG and A became EN.
+ */
 export function Tile({
   letter,
   mark = null,
@@ -42,6 +46,7 @@ export function Tile({
         type="button"
         aria-label={label}
         aria-current={selected || undefined}
+        translate="no"
         className={`tile ${className}`}
         style={style}
         onMouseDown={keepFocus}
@@ -53,7 +58,7 @@ export function Tile({
     );
   }
   return (
-    <div role={label ? "img" : undefined} aria-label={label} className={`tile ${className}`} style={style} {...data}>
+    <div role={label ? "img" : undefined} aria-label={label} translate="no" className={`tile ${className}`} style={style} {...data}>
       {letter}
     </div>
   );

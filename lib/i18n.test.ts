@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { UI } from "@/data/ui";
-import { pickLang } from "./i18n";
+import { LANG_KEY, LANG_SCRIPT, pickLang } from "./i18n";
 
 describe("pickLang", () => {
   it("lets a ?lang= link win, then the saved pick, then the browser", () => {
@@ -8,6 +8,39 @@ describe("pickLang", () => {
     expect(pickLang({ search: "?lang=xx", saved: "da", browser: ["en-US"] })).toBe("da");
     expect(pickLang({ browser: ["de-DE", "da-DK", "en"] })).toBe("da");
     expect(pickLang({ browser: ["de-DE"] })).toBe("en");
+  });
+});
+
+type Visit = { search?: string; saved?: string | null; browser?: string[] };
+
+/** Runs the layout's script in a made-up browser and returns the language it left on <html> (the server's is en) */
+function scriptLang({ search = "", saved = null, browser = [] }: Visit, storage: Pick<Storage, "getItem"> = { getItem: (key) => (key === LANG_KEY ? saved : null) }) {
+  const html = { lang: "en" };
+  const run = new Function("document", "location", "localStorage", "navigator", LANG_SCRIPT) as (...globals: unknown[]) => void;
+  run({ documentElement: html }, { search }, storage, { languages: browser, language: browser[0] });
+  return html.lang;
+}
+
+describe("LANG_SCRIPT", () => {
+  it("picks what pickLang picks, before the game has loaded", () => {
+    const visits: Visit[] = [
+      { search: "?lang=da", saved: "en", browser: ["en-US"] },
+      { search: "?lang=EN", saved: "da", browser: ["da"] },
+      { search: "?lang=xx", saved: "da", browser: ["en-US"] },
+      { saved: "xx", browser: ["de-DE", "da-DK", "en"] },
+      { browser: ["de-DE"] },
+      {},
+    ];
+    for (const visit of visits) expect(scriptLang(visit)).toBe(pickLang(visit));
+  });
+
+  it("still goes by the browser when site data is blocked", () => {
+    const blocked = {
+      getItem: () => {
+        throw new Error("SecurityError");
+      },
+    };
+    expect(scriptLang({ browser: ["da-DK"] }, blocked)).toBe("da");
   });
 });
 

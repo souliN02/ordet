@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { UI } from "@/data/ui";
 import { dailyAnswer, dateKey, dayNumber, msUntilMidnight } from "@/lib/daily";
 import { addGuess, evaluate, guessProblem, letterMarks, newGame, status, type Problem } from "@/lib/game";
@@ -39,7 +39,7 @@ const BOUNCE: Keyframe[] = [
 ];
 
 type Words = { lang: Lang; list: WordList } | { lang: Lang; failed: true };
-type Toast = { id: number; text: string };
+type Toast = { id: number; text: ReactNode };
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -138,9 +138,10 @@ export default function Game() {
     if (save) writeStorage(SAVE_KEY, JSON.stringify(save));
   }, [save]);
 
+  // Until the language is picked, <html lang> keeps the one the layout's script put there
   useEffect(() => {
-    document.documentElement.lang = lang;
-  }, [lang]);
+    if (loaded) document.documentElement.lang = lang;
+  }, [loaded, lang]);
 
   // The inline script in the layout already applied the saved theme before the first paint
   const { theme, contrast } = settings;
@@ -229,7 +230,7 @@ export default function Game() {
     return () => pending.forEach((id) => window.clearTimeout(id));
   }, []);
 
-  const toast = useCallback((text: string, ms = 1_600) => {
+  const toast = useCallback((text: ReactNode, ms = 1_600) => {
     const id = ++toastId.current;
     setToasts((all) => [...all.slice(-2), { id, text }]);
     window.setTimeout(() => setToasts((all) => all.filter((t) => t.id !== id)), ms);
@@ -241,16 +242,17 @@ export default function Game() {
     el?.animate(frames, options);
   };
 
-  const problemText = (problem: Problem): string => {
+  // A hint that names one of the game's letters isn't translated, as with the tiles (see Tile)
+  const problemText = (problem: Problem): ReactNode => {
     switch (problem.kind) {
       case "short":
         return ui.problems.short;
       case "unknown":
         return ui.problems.unknown;
       case "position":
-        return ui.problems.position(problem.index + 1, problem.letter);
+        return <span translate="no">{ui.problems.position(problem.index + 1, problem.letter)}</span>;
       case "missing":
-        return ui.problems.missing(problem.letter);
+        return <span translate="no">{ui.problems.missing(problem.letter)}</span>;
     }
   };
 
@@ -336,7 +338,8 @@ export default function Game() {
           toast(ui.wins[row] ?? "", 2_000);
           later(() => setPanel("stats"), still ? 1_200 : BOUNCE_MS + BOUNCE_STAGGER_MS * WORD_LENGTH + 400);
         } else if (result === "lost") {
-          toast(ui.lost(game.solution), 4_000);
+          // Translated into Danish, "The word was CRANE" said KRAN
+          toast(<span translate="no">{ui.lost(game.solution)}</span>, 4_000);
           later(() => setPanel("stats"), 2_400);
         }
       },
@@ -434,7 +437,7 @@ export default function Game() {
             </p>
           ))}
         </div>
-        <p className="sr-only" aria-live="polite">
+        <p className="sr-only" aria-live="polite" translate="no">
           {announcement}
         </p>
 
@@ -463,7 +466,11 @@ export default function Game() {
       <div className="flex min-h-14 flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-1 text-sm">
         {finished && game && (
           <>
-            {state === "lost" && <span className="font-semibold">{ui.lost(game.solution)}</span>}
+            {state === "lost" && (
+              <span className="font-semibold" translate="no">
+                {ui.lost(game.solution)}
+              </span>
+            )}
             {mode === "daily" ? (
               <span className="text-[var(--muted)]">
                 {ui.stats.next} <Countdown className="font-semibold text-[var(--fg)] tabular-nums" />

@@ -26,3 +26,10 @@ export function pickLang({ search = "", saved = null, browser = [] }: { search?:
   }
   return "en";
 }
+
+/**
+ * pickLang as an inline script for the layout's <head>, so <html lang> is right before anything
+ * is drawn. Browsers decide a page's language from that first version, which the server renders
+ * in English: a Danish game was taken for English and offered a translation into Danish.
+ */
+export const LANG_SCRIPT = `try{var l=${JSON.stringify(LANGS)},p=[],q=new URLSearchParams(location.search).get("lang"),b=navigator.languages||[navigator.language],i;if(q)p.push(q.trim().toLowerCase());try{p.push(localStorage.getItem(${JSON.stringify(LANG_KEY)}))}catch(e){}for(i=0;i<b.length;i++)p.push(String(b[i]).toLowerCase().split("-")[0]);for(i=0;i<p.length;i++)if(l.indexOf(p[i])>=0){document.documentElement.lang=p[i];break}}catch(e){}`;

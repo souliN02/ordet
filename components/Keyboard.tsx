@@ -7,9 +7,10 @@ import type { Lang } from "@/lib/i18n";
 /** A mouse click mustn't move focus to the key, or the next Enter would press that key again instead of guessing */
 const keepFocus = (e: MouseEvent) => e.preventDefault();
 
+/** Not translated, as with the tiles (see Tile) */
 function Key({ onPress, mark, wide, label, children }: { onPress: () => void; mark?: Mark; wide?: boolean; label?: string; children: ReactNode }) {
   return (
-    <button type="button" className="key" data-mark={mark} data-wide={wide ? "" : undefined} aria-label={label} onMouseDown={keepFocus} onClick={onPress}>
+    <button type="button" className="key" data-mark={mark} data-wide={wide ? "" : undefined} aria-label={label} translate="no" onMouseDown={keepFocus} onClick={onPress}>
       {children}
     </button>
   );

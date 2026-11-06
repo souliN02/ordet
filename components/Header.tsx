@@ -94,7 +94,8 @@ export default function Header({
             <CircleHelp aria-hidden className="size-6" />
           </IconButton>
         </div>
-        <h1 className="flex gap-[3px]">
+        {/* The name and its letters aren't translated (see Tile) */}
+        <h1 className="flex gap-[3px]" translate="no">
           <span className="sr-only">{ui.title}</span>
           {LOGO.map(([letter, mark]) => (
             <span key={letter} aria-hidden className="tile tile-xs" data-mark={mark}>

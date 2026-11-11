@@ -1,5 +1,6 @@
 import type { Mark } from "@/lib/game";
 import type { Lang } from "@/lib/i18n";
+import type { Vocab } from "@/lib/words";
 
 /** A worked example in the help: the word, the tile it explains, and what that tile means */
 export type Example = { word: string; index: number; mark: Mark; text: string };
@@ -12,7 +13,7 @@ const en = {
   retry: "Try again",
   modes: { label: "Game mode", daily: "Daily", unlimited: "Unlimited" },
   language: "Language",
-  buttons: { help: "How to play", stats: "Statistics", settings: "Settings", close: "Close" },
+  buttons: { help: "How to play", challenge: "Challenge a friend", stats: "Statistics", settings: "Settings", close: "Close" },
   keys: { label: "Keyboard", enter: "Enter", backspace: "Delete" },
 
   board: "Guesses",
@@ -29,10 +30,104 @@ const en = {
     position: (n: number, letter: string) => `Letter ${n} must be ${letter.toUpperCase()}`,
     missing: (letter: string) => `The guess must use ${letter.toUpperCase()}`,
   },
-  /** After a win in 1 to 6 guesses */
-  wins: ["Unreal!", "Brilliant!", "Superb!", "Well played!", "Nice!", "Close call!"],
+  /** After a win in 1 to 6 guesses: the game says one of the lines */
+  wins: [
+    ["Unreal!", "Did you peek?", "First try. Suspicious."],
+    ["Brilliant!", "Two guesses. Show-off.", "That was quick."],
+    ["Superb!", "Three is plenty.", "Smooth."],
+    ["Well played!", "Solid.", "Right down the middle."],
+    ["Nice!", "Got there.", "A little tight, but it counts."],
+    ["Close call!", "Phew.", "On the last try. Bold."],
+  ],
+  /** After a first guess without a single letter of the word */
+  blank: ["Well, that's five letters ruled out.", "A clean miss. That's information too."],
   lost: (word: string) => `The word was ${word.toUpperCase()}`,
+  /** Lost with four letters in place */
+  lostClose: (word: string) => `So close. The word was ${word.toUpperCase()}`,
+  /** Said when one of these words is guessed and isn't the answer */
+  eggs: {
+    ordet: "That's the name of the game, not the answer.",
+    hygge: "How cozy.",
+    gætte: "That's the idea.",
+    svært: "It is, isn't it?",
+    snyde: "Not in this game.",
+    guess: "That's the idea.",
+    wrong: "You said it.",
+    cheat: "Not in this game.",
+    hello: "Hello to you too.",
+  },
+  /** On Christmas Eve */
+  christmas: "Merry Christmas!",
   newWord: "New word",
+  /** The link to a dictionary after a game */
+  meaning: (word: string) => `What does ${word.toUpperCase()} mean?`,
+
+  streak: {
+    label: (n: number) => `Current streak: ${n}`,
+    /** When a win brings the streak to a round number */
+    milestone: (n: number) => `${n} in a row!`,
+  },
+
+  hint: {
+    button: "Hint",
+    reveal: (n: number, letter: string) => `Letter ${n} is ${letter.toUpperCase()}`,
+    /** Read out for an empty tile that shows a hinted letter */
+    tile: (letter: string) => `hint: ${letter.toUpperCase()}`,
+  },
+
+  mix: {
+    /** The language switch's third pick */
+    title: "Mix: English or Danish",
+    /** Under the board while a Mix word is being played */
+    ask: "English or Danish?",
+    /** After the game: where the word came from */
+    is: {
+      en: (word: string) => `${word.toUpperCase()} is English`,
+      da: (word: string) => `${word.toUpperCase()} is Danish`,
+      both: (word: string) => `${word.toUpperCase()} is both English and Danish`,
+    },
+  },
+
+  challenge: {
+    title: "Challenge a friend",
+    intro: "Pick a five-letter word and send the link. Your friend gets six tries and never sees the word.",
+    word: "Your word",
+    /** What the friend plays it with */
+    plays: {
+      en: "Played in English.",
+      da: "Played in Danish.",
+      mix: "Played in Mix: your friend won't know which language it is.",
+    } satisfies Record<Vocab, string>,
+    unknown: "That isn't in the word list. It still works, so names and inside jokes are fine, but check the spelling.",
+    blocked: "That word can't be used.",
+    send: "Send the link",
+    copied: "Link copied",
+    copyFailed: "Couldn't copy the link",
+    /** The message that goes with the link */
+    invite: "I picked a word for you in Ordet. Can you guess it?",
+    /** In a shared result, before the link to the same word */
+    same: "Try the same word:",
+    /** Under the statistics, about that link */
+    sameHint: "The link lets a friend try the same word.",
+    /** Under the board while a friend's word is being played */
+    playing: "A word from a friend",
+    broken: "That link doesn't work",
+    keepPlaying: "Keep playing",
+  },
+
+  /** Shown once to players who were here before it (lib/news.ts), and from the settings */
+  news: {
+    title: "What's new",
+    items: {
+      mix: { title: "Mix", text: "A third pick next to EN and DA. The word can be English or Danish, and you work out which." },
+      challenge: { title: "Challenge a friend", text: "Send a word of your own as a link. A shared Unlimited result lets a friend try the same word." },
+      hint: { title: "Hints", text: "Stuck? Outside the Daily, a hint gives you one letter." },
+      meaning: { title: "Look it up", text: "After a game, a link takes you to the word in a dictionary." },
+      streak: { title: "Streaks", text: "Your streak sits on the statistics button, and round numbers get confetti." },
+      transfer: { title: "Move your statistics", text: "Settings has a code that carries them to another device." },
+    },
+    done: "Play",
+  },
 
   help: {
     title: "How to play",
@@ -49,9 +144,10 @@ const en = {
     ] as Example[],
     modes: [
       { name: "Daily", text: "One word a day, the same for everyone. A new one comes at midnight." },
-      { name: "Unlimited", text: "As many words as you like, one after another." },
+      { name: "Unlimited", text: "As many words as you like, one after another. A hint gives you one letter, and a shared result lets a friend try the same word." },
+      { name: "Mix", text: "Next to EN and DA. The word can be English or Danish, and working out which is part of the puzzle." },
     ],
-    languages: "English and Danish each have their own words, games and statistics.",
+    languages: "English, Danish and Mix each have their own games and statistics.",
   },
 
   stats: {
@@ -82,6 +178,23 @@ const en = {
     source: "Source code",
     danishWords: "Danish words from Den Danske Ordbog by",
   },
+
+  /** In the settings: statistics live in the browser, so a code carries them to another one */
+  transfer: {
+    title: "Move to another device",
+    hint: "Copy a code here and paste it on the other device. It carries your statistics and settings.",
+    copy: "Copy code",
+    copied: "Code copied",
+    copyFailed: "Couldn't copy the code",
+    paste: "Paste a code",
+    import: "Import",
+    /** Before statistics that are already on this device are overwritten */
+    confirm: "This replaces the statistics on this device.",
+    replace: "Replace",
+    cancel: "Cancel",
+    done: "Statistics imported",
+    invalid: "That code doesn't work",
+  },
 };
 
 export type UiStrings = typeof en;
@@ -94,7 +207,7 @@ const da: UiStrings = {
   retry: "Prøv igen",
   modes: { label: "Spiltype", daily: "Dagens ord", unlimited: "Ubegrænset" },
   language: "Sprog",
-  buttons: { help: "Sådan spiller du", stats: "Statistik", settings: "Indstillinger", close: "Luk" },
+  buttons: { help: "Sådan spiller du", challenge: "Udfordr en ven", stats: "Statistik", settings: "Indstillinger", close: "Luk" },
   keys: { label: "Tastatur", enter: "Enter", backspace: "Slet" },
 
   board: "Gæt",
@@ -109,9 +222,87 @@ const da: UiStrings = {
     position: (n, letter) => `Bogstav ${n} skal være ${letter.toUpperCase()}`,
     missing: (letter) => `Gættet skal indeholde ${letter.toUpperCase()}`,
   },
-  wins: ["Utroligt!", "Genialt!", "Fremragende!", "Godt spillet!", "Flot!", "Puha, det var tæt på!"],
+  wins: [
+    ["Utroligt!", "Snød du?", "Første forsøg. Mistænkeligt."],
+    ["Genialt!", "To gæt. Nu blærer du dig.", "Det gik stærkt."],
+    ["Fremragende!", "Tre er rigeligt.", "Elegant."],
+    ["Godt spillet!", "Solidt.", "Lige i midten."],
+    ["Flot!", "Den kom i hus.", "Lidt tæt på, men det tæller."],
+    ["Puha, det var tæt på!", "Puha.", "I sidste forsøg. Modigt."],
+  ],
+  blank: ["Nå, så er de fem udelukket.", "Helt ved siden af. Det er også en slags viden."],
   lost: (word) => `Ordet var ${word.toUpperCase()}`,
+  lostClose: (word) => `Så tæt på. Ordet var ${word.toUpperCase()}`,
+  eggs: {
+    ordet: "Det er spillets navn, ikke svaret.",
+    hygge: "Så blev det hyggeligt.",
+    gætte: "Ja, det er meningen.",
+    svært: "Ja, det er det.",
+    snyde: "Ikke i det her spil.",
+    guess: "Ja, det er meningen.",
+    wrong: "Det sagde du selv.",
+    cheat: "Ikke i det her spil.",
+    hello: "Hej med dig.",
+  },
+  christmas: "Glædelig jul!",
   newWord: "Nyt ord",
+  meaning: (word) => `Hvad betyder ${word.toUpperCase()}?`,
+
+  streak: {
+    label: (n) => `Nuværende serie: ${n}`,
+    milestone: (n) => `${n} i træk!`,
+  },
+
+  hint: {
+    button: "Hint",
+    reveal: (n, letter) => `Bogstav ${n} er ${letter.toUpperCase()}`,
+    tile: (letter) => `hint: ${letter.toUpperCase()}`,
+  },
+
+  mix: {
+    title: "Mix: engelsk eller dansk",
+    ask: "Engelsk eller dansk?",
+    is: {
+      en: (word) => `${word.toUpperCase()} er engelsk`,
+      da: (word) => `${word.toUpperCase()} er dansk`,
+      both: (word) => `${word.toUpperCase()} er både engelsk og dansk`,
+    },
+  },
+
+  challenge: {
+    title: "Udfordr en ven",
+    intro: "Vælg et ord på fem bogstaver, og send linket. Din ven får seks forsøg og ser aldrig ordet.",
+    word: "Dit ord",
+    plays: {
+      en: "Spilles på engelsk.",
+      da: "Spilles på dansk.",
+      mix: "Spilles i Mix: din ven ved ikke, hvilket sprog det er.",
+    },
+    unknown: "Ordet står ikke i ordlisten. Det virker alligevel, så navne og indforståede jokes er fine, men tjek stavningen.",
+    blocked: "Det ord kan ikke bruges.",
+    send: "Send linket",
+    copied: "Linket er kopieret",
+    copyFailed: "Linket kunne ikke kopieres",
+    invite: "Jeg har valgt et ord til dig i Ordet. Kan du gætte det?",
+    same: "Prøv det samme ord:",
+    sameHint: "Med linket kan en ven prøve det samme ord.",
+    playing: "Et ord fra en ven",
+    broken: "Linket virker ikke",
+    keepPlaying: "Spil videre",
+  },
+
+  news: {
+    title: "Nyt i Ordet",
+    items: {
+      mix: { title: "Mix", text: "Et tredje valg ved siden af EN og DA. Ordet kan være engelsk eller dansk, og du skal selv regne ud hvilket." },
+      challenge: { title: "Udfordr en ven", text: "Send et ord, du selv har valgt, som et link. Deler du et resultat fra Ubegrænset, kan en ven prøve det samme ord." },
+      hint: { title: "Hint", text: "Gået i stå? Uden for Dagens ord giver et hint dig ét bogstav." },
+      meaning: { title: "Slå ordet op", text: "Efter et spil fører et link dig til ordet i en ordbog." },
+      streak: { title: "Serier", text: "Din serie står på statistikknappen, og runde tal fejres med konfetti." },
+      transfer: { title: "Flyt din statistik", text: "I Indstillinger er der en kode, som tager den med til en anden enhed." },
+    },
+    done: "Spil",
+  },
 
   help: {
     title: "Sådan spiller du",
@@ -128,9 +319,10 @@ const da: UiStrings = {
     ],
     modes: [
       { name: "Dagens ord", text: "Ét ord om dagen, det samme for alle. Der kommer et nyt ved midnat." },
-      { name: "Ubegrænset", text: "Så mange ord, du vil, det ene efter det andet." },
+      { name: "Ubegrænset", text: "Så mange ord, du vil, det ene efter det andet. Et hint giver dig ét bogstav, og når du deler resultatet, kan en ven prøve det samme ord." },
+      { name: "Mix", text: "Ved siden af EN og DA. Ordet kan være engelsk eller dansk, og du skal selv regne ud hvilket." },
     ],
-    languages: "Engelsk og dansk har hver deres ord, spil og statistik.",
+    languages: "Engelsk, dansk og Mix har hver deres spil og statistik.",
   },
 
   stats: {
@@ -160,18 +352,37 @@ const da: UiStrings = {
     source: "Kildekode",
     danishWords: "Danske ord fra Den Danske Ordbog fra",
   },
+
+  transfer: {
+    title: "Flyt til en anden enhed",
+    hint: "Kopiér en kode her, og indsæt den på den anden enhed. Den indeholder din statistik og dine indstillinger.",
+    copy: "Kopiér kode",
+    copied: "Koden er kopieret",
+    copyFailed: "Koden kunne ikke kopieres",
+    paste: "Indsæt en kode",
+    import: "Importér",
+    confirm: "Det erstatter statistikken på denne enhed.",
+    replace: "Erstat",
+    cancel: "Annuller",
+    done: "Statistikken er importeret",
+    invalid: "Koden virker ikke",
+  },
 };
 
 export const UI: Record<Lang, UiStrings> = { en, da };
 
-/** The language switch names each language in its own words */
-export const LANG_NAMES: Record<Lang, { code: string; name: string }> = {
+/** The language switch names each language in its own words. Mix is both, so it's the same in either. */
+export const VOCAB_NAMES: Record<Vocab, { code: string; name: string }> = {
   en: { code: "EN", name: "English" },
   da: { code: "DA", name: "Dansk" },
+  mix: { code: "MIX", name: "Mix" },
 };
 
-/** On-screen keyboards: QWERTY, and the Danish layout with Å, Æ and Ø where a Danish keyboard has them */
-export const KEYBOARDS: Record<Lang, string[]> = {
+const DANISH_KEYS = ["qwertyuiopå", "asdfghjklæø", "zxcvbnm"];
+
+/** On-screen keyboards: QWERTY, and the Danish layout with Å, Æ and Ø where a Danish keyboard has them (Mix needs those too) */
+export const KEYBOARDS: Record<Vocab, string[]> = {
   en: ["qwertyuiop", "asdfghjkl", "zxcvbnm"],
-  da: ["qwertyuiopå", "asdfghjklæø", "zxcvbnm"],
+  da: DANISH_KEYS,
+  mix: DANISH_KEYS,
 };

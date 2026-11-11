@@ -10,7 +10,12 @@ export type Game = {
   hard: boolean;
   /** The daily puzzle's number, or null in Unlimited */
   day: number | null;
+  /** The slots a hint has given away (never in a Daily, which is the same for everyone) */
+  hints: number[];
 };
+
+/** A word gets one hint */
+export const MAX_HINTS = 1;
 
 export type Problem =
   | { kind: "short" }
@@ -91,7 +96,36 @@ export function guessProblem(guess: string, game: Game, accepted: ReadonlySet<st
 }
 
 export function newGame(solution: string, day: number | null): Game {
-  return { solution, guesses: [], hard: false, day };
+  return { solution, guesses: [], hard: false, day, hints: [] };
+}
+
+/**
+ * The slot a hint would give away: one the player hasn't got right yet, and rather a letter
+ * they haven't found at all than one they've only misplaced. Null when every slot is known.
+ */
+export function hintSlot(game: Game): number | null {
+  const solution = [...game.solution];
+  const known = new Set(game.hints);
+  const found = new Set<string>();
+  for (const guess of game.guesses) {
+    const letters = [...guess];
+    evaluate(guess, game.solution).forEach((mark, i) => {
+      if (mark === "correct") known.add(i);
+      if (mark !== "absent") found.add(letters[i]!);
+    });
+  }
+  const open = solution.map((_, i) => i).filter((i) => !known.has(i));
+  return open.find((i) => !found.has(solution[i]!)) ?? open[0] ?? null;
+}
+
+export function canHint(game: Game): boolean {
+  return game.day === null && status(game) === "playing" && game.hints.length < MAX_HINTS && hintSlot(game) !== null;
+}
+
+/** The game after a hint, or the same game when there's none to give */
+export function addHint(game: Game): Game {
+  const at = canHint(game) ? hintSlot(game) : null;
+  return at === null ? game : { ...game, hints: [...game.hints, at] };
 }
 
 /** The game after a guess. The first guess fixes hard mode; switching it off later ends it for this game. */

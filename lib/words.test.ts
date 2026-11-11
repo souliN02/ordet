@@ -2,8 +2,9 @@ import { describe, expect, it } from "vitest";
 import * as da from "@/data/words/da";
 import * as en from "@/data/words/en";
 import { KEYBOARDS } from "@/data/ui";
+import { dailyAnswer } from "./daily";
 import { LANGS } from "./i18n";
-import { ALPHABET, makeWordList, pickAnswer, toLetter, WORD_LENGTH } from "./words";
+import { ALPHABET, dailyWord, isVocab, makeVocabulary, makeWordList, pickAnswer, pickFrom, toLetter, VOCABS, WORD_LENGTH, wordLangs } from "./words";
 
 const LISTS = { en, da };
 
@@ -28,8 +29,11 @@ describe("the word lists", () => {
       expect(ANSWERS.length).toBeGreaterThan(3 * 365);
     });
 
-    it(`${lang}: can be typed on the on-screen keyboard`, () => {
-      expect([...KEYBOARDS[lang].join("")].sort().join("")).toBe([...ALPHABET[lang]].sort().join(""));
+  }
+
+  for (const vocab of VOCABS) {
+    it(`${vocab}: can be typed on the on-screen keyboard`, () => {
+      expect([...KEYBOARDS[vocab].join("")].sort().join("")).toBe([...ALPHABET[vocab]].sort().join(""));
     });
   }
 
@@ -55,6 +59,59 @@ describe("toLetter", () => {
 
   it("joins a decomposed å into one letter", () => {
     expect(toLetter("å", "da")).toBe("å");
+  });
+});
+
+describe("vocabularies", () => {
+  const english = makeWordList(["crane", "sport"], ["slate"]);
+  const danish = makeWordList(["kaffe", "sport"], ["huset"]);
+  const mix = makeVocabulary({ en: english, da: danish });
+
+  it("are English, Danish or Mix", () => {
+    expect(VOCABS.filter(isVocab)).toEqual(["en", "da", "mix"]);
+    expect(isVocab("fr")).toBe(false);
+    expect(isVocab(null)).toBe(false);
+  });
+
+  it("take every letter of both languages in Mix", () => {
+    expect(toLetter("q", "mix")).toBe("q");
+    expect(toLetter("Ø", "mix")).toBe("ø");
+  });
+
+  it("accept one language's words, or both in Mix", () => {
+    expect(makeVocabulary({ da: danish }).accepted).toBe(danish.accepted);
+    expect([...mix.accepted].sort()).toEqual(["crane", "huset", "kaffe", "slate", "sport"]);
+  });
+
+  it("know which language a word came from", () => {
+    expect(wordLangs(mix, "crane")).toEqual(["en"]);
+    expect(wordLangs(mix, "huset")).toEqual(["da"]);
+    expect(wordLangs(mix, "sport")).toEqual(["en", "da"]);
+    expect(wordLangs(mix, "bekir")).toEqual([]);
+    expect(wordLangs(makeVocabulary({ en: english }), "kaffe")).toEqual([]);
+  });
+
+  it("pick an answer from the one list, as before", () => {
+    expect(pickFrom(makeVocabulary({ en: english }), ["crane"], () => 0.99)).toBe("sport");
+  });
+
+  it("flip a coin for the language in Mix, then pick from that language", () => {
+    const rolls = (...values: number[]) => () => values.shift() ?? 0;
+    expect(pickFrom(mix, [], rolls(0.1, 0))).toBe("crane");
+    expect(pickFrom(mix, [], rolls(0.9, 0))).toBe("kaffe");
+    expect(pickFrom(mix, ["kaffe"], rolls(0.9, 0))).toBe("sport");
+  });
+
+  it("take the day's word from the language's schedule, and Mix's from its own", () => {
+    expect(dailyWord(makeVocabulary({ da: danish }), 3)).toBe(dailyAnswer(danish.answers, 3));
+    expect(["crane", "sport", "kaffe"]).toContain(dailyWord(mix, 3));
+  });
+
+  it("share a good many words between the languages, which is what makes Mix a puzzle", () => {
+    const real = makeVocabulary({ en: makeWordList(en.ANSWERS, en.GUESSES), da: makeWordList(da.ANSWERS, da.GUESSES) });
+    const both = [...real.accepted].filter((word) => wordLangs(real, word).length === 2);
+    expect(both.length).toBeGreaterThan(1000);
+    expect(real.accepted.size).toBe(en.ANSWERS.length + en.GUESSES.length + da.ANSWERS.length + da.GUESSES.length - both.length);
   });
 });
 

@@ -2,7 +2,7 @@ import { Delete } from "lucide-react";
 import type { MouseEvent, ReactNode } from "react";
 import { KEYBOARDS, type UiStrings } from "@/data/ui";
 import type { Mark } from "@/lib/game";
-import type { Lang } from "@/lib/i18n";
+import type { Vocab } from "@/lib/words";
 
 /** A mouse click mustn't move focus to the key, or the next Enter would press that key again instead of guessing */
 const keepFocus = (e: MouseEvent) => e.preventDefault();
@@ -17,21 +17,22 @@ function Key({ onPress, mark, wide, label, children }: { onPress: () => void; ma
 }
 
 export default function Keyboard({
-  lang,
+  vocab,
   marks,
   ui,
   onLetter,
   onEnter,
   onBackspace,
 }: {
-  lang: Lang;
+  /** Mix gets the Danish layout: it has every letter, and so gives nothing away */
+  vocab: Vocab;
   marks: ReadonlyMap<string, Mark>;
   ui: UiStrings;
   onLetter: (letter: string) => void;
   onEnter: () => void;
   onBackspace: () => void;
 }) {
-  const rows = KEYBOARDS[lang];
+  const rows = KEYBOARDS[vocab];
   // The English middle row is shorter, so it's centered by half a key on each side, as on a real keyboard
   const indent = rows[1]!.length < rows[0]!.length ? <div className="flex-[0.5_1_0]" /> : null;
   return (

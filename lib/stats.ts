@@ -36,6 +36,16 @@ export function currentStreak(stats: Stats, today: number | null): number {
   return stats.lastDay !== null && today - stats.lastDay <= 1 ? stats.streak : 0;
 }
 
+/** Streaks worth a celebration: a week, a fortnight and a month of days, rounder numbers where the words come faster */
+const MILESTONES = {
+  daily: [7, 14, 30, 50, 100, 200, 365, 500, 1000],
+  other: [5, 10, 25, 50, 100, 250, 500, 1000],
+};
+
+export function isMilestone(streak: number, daily: boolean): boolean {
+  return MILESTONES[daily ? "daily" : "other"].includes(streak);
+}
+
 export function winRate(stats: Stats): number {
   return stats.played === 0 ? 0 : Math.round((stats.wins / stats.played) * 100);
 }

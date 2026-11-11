@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentStreak, EMPTY_STATS, recordResult, winRate } from "./stats";
+import { currentStreak, EMPTY_STATS, isMilestone, recordResult, winRate } from "./stats";
 
 describe("daily statistics", () => {
   it("counts a win and its number of guesses", () => {
@@ -45,6 +45,20 @@ describe("unlimited statistics", () => {
     expect(currentStreak(s, null)).toBe(2);
     s = recordResult(s, { won: false, tries: 6, day: null });
     expect(s).toMatchObject({ played: 3, streak: 0, best: 2 });
+  });
+});
+
+describe("isMilestone", () => {
+  it("celebrates a week, a fortnight and a month of daily words", () => {
+    expect([1, 5, 7, 10, 14, 30, 31, 365].filter((n) => isMilestone(n, true))).toEqual([7, 14, 30, 365]);
+  });
+
+  it("celebrates rounder numbers where the words come faster", () => {
+    expect([1, 5, 7, 10, 14, 25, 30].filter((n) => isMilestone(n, false))).toEqual([5, 10, 25]);
+  });
+
+  it("has nothing to celebrate without a streak", () => {
+    expect(isMilestone(0, true) || isMilestone(0, false)).toBe(false);
   });
 });
 

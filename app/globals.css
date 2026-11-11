@@ -21,6 +21,8 @@
   --correct: #3d9a5b;
   --present: #b8891c;
   --absent: #787c84;
+  /* A streak that's been kept today. The same in every theme: white numbers are 4:1 on it. */
+  --streak: #d9541e;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -154,6 +156,13 @@ body {
   button.tile {
     cursor: pointer;
     touch-action: manipulation;
+  }
+
+  /* A hinted letter waiting in its slot: there to be typed over, so it's fainter than a typed one */
+  .tile[data-ghost] {
+    border-style: dashed;
+    border-color: var(--tile-filled);
+    color: var(--muted);
   }
 
   /* The cursor: where the next letter goes, underlined like a caret */
@@ -301,6 +310,53 @@ body {
   .toast {
     animation: toast-in 120ms ease-out;
   }
+
+  /* ─── Header ───
+     The streak sits on the corner of the statistics button: gray while today's
+     word is still to be solved, lit once the streak is safe for the day. */
+  .streak {
+    position: absolute;
+    top: 0;
+    right: -6px;
+    /* It reaches over toward the settings button, so a tap there goes through it */
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    height: 1rem;
+    min-width: 1rem;
+    padding: 0 0.25rem 0 0.1875rem;
+    border-radius: 999px;
+    background: var(--tile-filled);
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    animation: streak-pop 320ms ease-out;
+  }
+
+  .streak[data-lit] {
+    background: var(--streak);
+  }
+
+  /* ─── Text fields (a word for a friend, a transfer code) ─── */
+  .field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid var(--tile-border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--fg);
+  }
+
+  .field::placeholder {
+    color: var(--muted);
+  }
+
+  .field:focus-visible {
+    border-color: var(--tile-filled);
+  }
 }
 
 @keyframes tile-reveal {
@@ -341,5 +397,14 @@ body {
   from {
     opacity: 0;
     transform: translateY(-4px);
+  }
+}
+
+@keyframes streak-pop {
+  from {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.25);
   }
 }

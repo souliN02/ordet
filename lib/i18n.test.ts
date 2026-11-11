@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { UI } from "@/data/ui";
+import * as da from "@/data/words/da";
+import * as en from "@/data/words/en";
 import { LANG_KEY, LANG_SCRIPT, pickLang } from "./i18n";
 
 describe("pickLang", () => {
@@ -73,6 +75,18 @@ describe("the interface text", () => {
 
   it("uses no em dashes", () => {
     expect([...strings(UI.en), ...strings(UI.da)].filter((s) => s.includes("—"))).toEqual([]);
+  });
+
+  it("only has easter eggs for words that can be guessed", () => {
+    const guessable = new Set([...en.ANSWERS, ...en.GUESSES, ...da.ANSWERS, ...da.GUESSES]);
+    expect(Object.keys(UI.en.eggs).filter((word) => !guessable.has(word))).toEqual([]);
+    expect(Object.keys(UI.da.eggs).sort()).toEqual(Object.keys(UI.en.eggs).sort());
+  });
+
+  it("has as many lines for a win in Danish as in English, for each number of guesses", () => {
+    expect(UI.en.wins).toHaveLength(6);
+    expect(UI.da.wins.map((lines) => lines.length)).toEqual(UI.en.wins.map((lines) => lines.length));
+    expect([...UI.en.wins, ...UI.da.wins].every((lines) => lines.length > 0)).toBe(true);
   });
 
   it("explains each help example with the tile it marks", () => {

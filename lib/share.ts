@@ -1,7 +1,6 @@
 import { evaluate, status, type Game, type Mark } from "./game";
-import type { Lang } from "./i18n";
 import { SITE_URL } from "./site";
-import { MAX_GUESSES } from "./words";
+import { MAX_GUESSES, type Vocab } from "./words";
 
 /** The squares match what's on screen: orange and blue in high contrast, black or white for misses */
 function square(mark: Mark, dark: boolean, contrast: boolean): string {
@@ -19,12 +18,18 @@ function square(mark: Mark, dark: boolean, contrast: boolean): string {
  *   ...
  *   ordet.bekirsaliv.dk/?lang=da
  *
- * ∞ replaces the number in Unlimited, X the score after a loss, and * marks hard mode.
+ * ∞ replaces the number when it isn't the day's word, X the score after a loss, * marks hard mode
+ * and 💡 a hint. A word that isn't the day's can end in a link to that same word instead (`same`),
+ * so the friend who gets the result can try it too.
  */
-export function shareText(game: Game, { lang, dark, contrast }: { lang: Lang; dark: boolean; contrast: boolean }): string {
+export function shareText(
+  game: Game,
+  { vocab, dark, contrast, same }: { vocab: Vocab; dark: boolean; contrast: boolean; same?: { label: string; link: string } },
+): string {
   const score = status(game) === "won" ? String(game.guesses.length) : "X";
-  const title = `Ordet ${game.day === null ? "∞" : `#${game.day}`} ${lang.toUpperCase()} ${score}/${MAX_GUESSES}${game.hard ? "*" : ""}`;
+  const extras = (game.hard ? "*" : "") + (game.hints.length > 0 ? ` ${"💡".repeat(game.hints.length)}` : "");
+  const title = `Ordet ${game.day === null ? "∞" : `#${game.day}`} ${vocab.toUpperCase()} ${score}/${MAX_GUESSES}${extras}`;
   const rows = game.guesses.map((guess) => evaluate(guess, game.solution).map((mark) => square(mark, dark, contrast)).join(""));
-  const link = SITE_URL.replace("https://", "") + (lang === "en" ? "" : `/?lang=${lang}`);
-  return [title, "", ...rows, "", link].join("\n");
+  const ending = same ? [same.label, same.link] : [SITE_URL.replace("https://", "") + (vocab === "en" ? "" : `/?lang=${vocab}`)];
+  return [title, "", ...rows, "", ...ending].join("\n");
 }

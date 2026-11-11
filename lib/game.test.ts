@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addGuess, evaluate, guessProblem, hardModeProblem, letterMarks, newGame, status, type Game } from "./game";
+import { addGuess, addHint, canHint, evaluate, guessProblem, hardModeProblem, hintSlot, letterMarks, newGame, status, type Game } from "./game";
 
 const words = new Set(["crane", "slate", "speed", "abide", "eerie", "geese", "lever", "level", "rebel", "kaffe", "skole", "æbler"]);
 
@@ -106,5 +106,48 @@ describe("addGuess", () => {
     const off = addGuess(first, "trace", false);
     expect(off.hard).toBe(false);
     expect(addGuess(off, "crane", true).hard).toBe(false);
+  });
+});
+
+describe("hints", () => {
+  const unlimited = (solution: string, guesses: string[] = []): Game => ({ ...newGame(solution, null), guesses });
+
+  it("give away the first letter when nothing is known yet", () => {
+    expect(hintSlot(unlimited("crane"))).toBe(0);
+    expect(addHint(unlimited("crane")).hints).toEqual([0]);
+  });
+
+  it("skip the slots the player already has right", () => {
+    // crate against crane: everything is green but the t
+    expect(hintSlot(unlimited("crane", ["crate"]))).toBe(3);
+  });
+
+  it("rather give a letter that hasn't been found than one that's only misplaced", () => {
+    // grace against crane: r, a and e are green and c is yellow, so slot 0 (c) is half known and slot 3 (n) is news
+    expect(hintSlot(unlimited("crane", ["grace"]))).toBe(3);
+    // react against crane: a is green, r, e and c are yellow, and only the n in slot 3 hasn't been found
+    expect(hintSlot(unlimited("crane", ["react"]))).toBe(3);
+    // nacre against crane: e is green and the rest are yellow, so every open letter has been found: the first it is
+    expect(hintSlot(unlimited("crane", ["nacre"]))).toBe(0);
+  });
+
+  it("have nothing to give once every slot is known, across guesses", () => {
+    // crate knows slots 0, 1, 2 and 4, and brand knows slot 3
+    expect(hintSlot(unlimited("crane", ["crate", "brand"]))).toBeNull();
+    expect(canHint(unlimited("crane", ["crate", "brand"]))).toBe(false);
+  });
+
+  it("are given once per word, never in a Daily, and never after the game", () => {
+    const hinted = addHint(unlimited("crane"));
+    expect(canHint(hinted)).toBe(false);
+    expect(addHint(hinted)).toBe(hinted);
+    expect(canHint(newGame("crane", 4))).toBe(false);
+    expect(addHint(newGame("crane", 4)).hints).toEqual([]);
+    expect(canHint(unlimited("crane", ["crane"]))).toBe(false);
+    expect(canHint(unlimited("crane", Array(6).fill("slate")))).toBe(false);
+  });
+
+  it("stay through the guesses that follow", () => {
+    expect(addGuess(addHint(unlimited("crane")), "slate", false).hints).toEqual([0]);
   });
 });

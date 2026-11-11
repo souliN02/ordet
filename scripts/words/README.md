@@ -14,6 +14,14 @@
 
 The Danish lists are based on language resources from [Det Danske Sprog- og Litteraturselskab (DSL)](https://dsl.dk), used under [DSL's terms for open language resources](https://korpus.dsl.dk/resources/licences/dsl-open.html). DSL doesn't endorse this game.
 
+## Blocked words
+
+`block-en.txt` and `block-da.txt` are the slurs that don't count even as guesses. A friend's word (a `?c=` link) can be any five letters, so the game refuses these there too: `lib/challenge.ts` keeps them as hashes, and `lib/challenge.test.ts` fails until every word in the two files has its hash there. For a new one:
+
+```bash
+node -e "let h=0x811c9dc5;for(const c of process.argv[1])h=Math.imul(h^c.charCodeAt(0),0x01000193);console.log('0x'+(h>>>0).toString(16).padStart(8,'0'))" theword
+```
+
 ## Regenerating
 
 `build.py` produced the first version of both files:

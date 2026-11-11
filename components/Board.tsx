@@ -13,6 +13,7 @@ const keepFocus = (e: MouseEvent) => e.preventDefault();
  */
 export function Tile({
   letter,
+  ghost = null,
   mark = null,
   reveal = false,
   index = 0,
@@ -22,6 +23,8 @@ export function Tile({
   onSelect,
 }: {
   letter: string | null;
+  /** A hinted letter, shown faintly in a slot until something is typed there */
+  ghost?: string | null;
   mark?: Mark | null;
   /** Flip into its color, waiting for the tiles before it */
   reveal?: boolean;
@@ -35,6 +38,7 @@ export function Tile({
 }) {
   const data = {
     "data-filled": letter ? "" : undefined,
+    "data-ghost": !letter && ghost ? "" : undefined,
     "data-mark": mark ?? undefined,
     "data-reveal": reveal ? "" : undefined,
     "data-cursor": selected ? "" : undefined,
@@ -53,13 +57,13 @@ export function Tile({
         onClick={onSelect}
         {...data}
       >
-        {letter}
+        {letter ?? ghost}
       </button>
     );
   }
   return (
     <div role={label ? "img" : undefined} aria-label={label} translate="no" className={`tile ${className}`} style={style} {...data}>
-      {letter}
+      {letter ?? ghost}
     </div>
   );
 }
@@ -69,6 +73,7 @@ export default function Board({
   guesses,
   solution,
   draft,
+  hints,
   showCursor,
   revealing,
   rowRefs,
@@ -79,6 +84,8 @@ export default function Board({
   solution: string;
   /** The row being typed, or null when there's nothing to type (still loading, or the game is over) */
   draft: Draft | null;
+  /** The slots a hint has given away: their letters wait in the row being typed */
+  hints: readonly number[];
   /** Hidden while a guess is revealed or a dialog is open */
   showCursor: boolean;
   revealing: number | null;
@@ -86,6 +93,7 @@ export default function Board({
   ui: UiStrings;
   onSelect: (slot: number) => void;
 }) {
+  const answer = [...solution];
   return (
     <div className="board" role="group" aria-label={ui.board}>
       {Array.from({ length: MAX_GUESSES }, (_, r) => {
@@ -106,14 +114,16 @@ export default function Board({
             {Array.from({ length: WORD_LENGTH }, (_, i) => {
               const letter = letters[i] || null;
               const mark = marks?.[i] ?? null;
+              const ghost = (typing && !letter && hints.includes(i) && answer[i]) || null;
               return (
                 <Tile
                   key={i}
                   letter={letter}
+                  ghost={ghost}
                   mark={mark}
                   reveal={r === revealing}
                   index={i}
-                  label={ui.tile(i + 1, letter, mark)}
+                  label={ghost ? `${ui.tile(i + 1, null, null)}, ${ui.hint.tile(ghost)}` : ui.tile(i + 1, letter, mark)}
                   selected={typing && showCursor && draft.cursor === i}
                   onSelect={typing ? () => onSelect(i) : undefined}
                 />

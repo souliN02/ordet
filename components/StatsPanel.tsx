@@ -1,29 +1,39 @@
 import { RotateCcw, Share2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { LANG_NAMES, type UiStrings } from "@/data/ui";
+import { VOCAB_NAMES, type UiStrings } from "@/data/ui";
 import { status, type Game } from "@/lib/game";
-import type { Lang } from "@/lib/i18n";
 import type { Mode } from "@/lib/save";
 import { currentStreak, winRate, type Stats } from "@/lib/stats";
+import type { Vocab } from "@/lib/words";
 import Countdown from "./Countdown";
 
 export default function StatsPanel({
   ui,
-  lang,
+  vocab,
   mode,
   stats,
   today,
   game,
+  line,
+  meaning,
+  shareHint,
   onShare,
   onNewWord,
 }: {
   ui: UiStrings;
-  lang: Lang;
+  vocab: Vocab;
   mode: Mode;
   stats: Stats;
   /** Today's puzzle number, to tell whether a daily streak is still alive */
   today: number | null;
+  /** The game that just ended, or null while one is being played */
   game: Game | null;
+  /** What there is to say about the word: what it was after a loss, which language it was in Mix */
+  line: string | null;
+  /** Where to look the word up */
+  meaning: { href: string; label: string } | null;
+  /** A word under the buttons about what the shared result carries */
+  shareHint: string | null;
   /** Resolves to what to tell the player ("Result copied"), if anything */
   onShare: () => Promise<string | null>;
   onNewWord: () => void;
@@ -43,7 +53,7 @@ export default function StatsPanel({
   return (
     <div>
       <p className="-mt-3 mb-4 text-sm text-[var(--muted)]">
-        {ui.modes[mode]} · {LANG_NAMES[lang].name}
+        {ui.modes[mode]} · {VOCAB_NAMES[vocab].name}
       </p>
 
       <dl className="grid grid-cols-4 gap-2 text-center">
@@ -81,10 +91,18 @@ export default function StatsPanel({
 
       {game && state !== "playing" && (
         <div className="mt-6 border-t border-[var(--line)] pt-5">
-          {state === "lost" && (
-            <p className="mb-4 text-center font-semibold" translate="no">
-              {ui.lost(game.solution)}
-            </p>
+          {(line || meaning) && (
+            // Neither names the word in a way a translation should touch (see Tile)
+            <div className="mb-4 space-y-1 text-center" translate="no">
+              {line && <p className="font-semibold">{line}</p>}
+              {meaning && (
+                <p className="text-sm">
+                  <a href={meaning.href} target="_blank" rel="noopener noreferrer" className="text-[var(--muted)] underline underline-offset-2 hover:text-[var(--fg)]">
+                    {meaning.label}
+                  </a>
+                </p>
+              )}
+            </div>
           )}
           <div className="flex items-center gap-3">
             {mode === "daily" ? (
@@ -107,8 +125,9 @@ export default function StatsPanel({
               <Share2 aria-hidden className="size-4" />
             </button>
           </div>
+          {/* The copied note takes the hint's place, so the dialog doesn't grow when it comes */}
           <p role="status" className="mt-2 min-h-5 text-center text-sm text-[var(--muted)]">
-            {note}
+            {note || shareHint}
           </p>
         </div>
       )}

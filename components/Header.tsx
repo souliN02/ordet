@@ -1,11 +1,12 @@
-import { ChartNoAxesColumn, CircleHelp, Settings } from "lucide-react";
-import type { MouseEvent, ReactNode } from "react";
-import { LANG_NAMES, type UiStrings } from "@/data/ui";
+import { ChartNoAxesColumn, CircleHelp, Flame, Settings, Swords } from "lucide-react";
+import { useId, type MouseEvent, type ReactNode } from "react";
+import { VOCAB_NAMES, type UiStrings } from "@/data/ui";
 import type { Mark } from "@/lib/game";
-import { LANGS, type Lang } from "@/lib/i18n";
 import { MODES, type Mode } from "@/lib/save";
+import { VOCABS, type Vocab } from "@/lib/words";
 
-export type Panel = "help" | "stats" | "settings";
+/** The dialogs. The news has no button here: it opens by itself once, and from the settings after that. */
+export type Panel = "help" | "challenge" | "stats" | "settings" | "news";
 
 /** See Keyboard: a click on the header mustn't leave focus on a button that the next Enter would press */
 const keepFocus = (e: MouseEvent) => e.preventDefault();
@@ -18,15 +19,23 @@ const LOGO: [string, Mark][] = [
   ["t", "correct"],
 ];
 
-function IconButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
+function IconButton({ label, title = label, describedBy, onClick, children }: { label: string; title?: string; describedBy?: string; onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" aria-label={label} title={label} onMouseDown={keepFocus} onClick={onClick} className="grid size-10 place-items-center rounded-full hover:bg-[var(--line)]">
+    <button
+      type="button"
+      aria-label={label}
+      aria-describedby={describedBy}
+      title={title}
+      onMouseDown={keepFocus}
+      onClick={onClick}
+      className="relative grid size-10 place-items-center rounded-full hover:bg-[var(--line)]"
+    >
       {children}
     </button>
   );
 }
 
-/** Two pill buttons in a track, the current one raised */
+/** Pill buttons in a track, the current one raised. On the narrowest phones they sit a little tighter so three languages fit. */
 function Segmented<T extends string>({
   label,
   options,
@@ -56,7 +65,7 @@ function Segmented<T extends string>({
             lang={lang}
             onMouseDown={keepFocus}
             onClick={() => onChange(option)}
-            className={`flex-1 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap transition-colors ${
+            className={`flex-1 rounded-full px-3 py-1 text-sm font-semibold whitespace-nowrap transition-colors max-[399px]:px-2 max-[399px]:text-[13px] max-[339px]:px-1.5 max-[339px]:text-xs ${
               on ? "bg-[var(--pill)] shadow-sm" : "text-[var(--muted)] hover:text-[var(--fg)]"
             }`}
           >
@@ -70,28 +79,39 @@ function Segmented<T extends string>({
 
 export default function Header({
   ui,
-  lang,
+  vocab,
   mode,
   ready,
-  onLang,
+  streak,
+  lit,
+  onVocab,
   onMode,
   onOpen,
 }: {
   ui: UiStrings;
-  lang: Lang;
-  mode: Mode;
+  vocab: Vocab;
+  /** Null while a friend's word is being played: it belongs to neither mode */
+  mode: Mode | null;
   /** Until the player's language and mode are known, the switches show nothing picked */
   ready: boolean;
-  onLang: (lang: Lang) => void;
+  /** The current streak, shown on the statistics button once there is one */
+  streak: number;
+  /** A daily streak is only lit once today's word is solved; until then it's still to be kept */
+  lit: boolean;
+  onVocab: (vocab: Vocab) => void;
   onMode: (mode: Mode) => void;
   onOpen: (panel: Panel) => void;
 }) {
+  const streakId = useId();
   return (
     <header className="border-b border-[var(--line)]">
       <div className="mx-auto grid h-14 max-w-[500px] grid-cols-[1fr_auto_1fr] items-center px-2">
         <div className="flex items-center gap-1">
           <IconButton label={ui.buttons.help} onClick={() => onOpen("help")}>
             <CircleHelp aria-hidden className="size-6" />
+          </IconButton>
+          <IconButton label={ui.buttons.challenge} onClick={() => onOpen("challenge")}>
+            <Swords aria-hidden className="size-6" />
           </IconButton>
         </div>
         {/* The name and its letters aren't translated (see Tile) */}
@@ -104,8 +124,21 @@ export default function Header({
           ))}
         </h1>
         <div className="flex items-center justify-end gap-1">
-          <IconButton label={ui.buttons.stats} onClick={() => onOpen("stats")}>
+          <IconButton
+            label={ui.buttons.stats}
+            title={streak > 0 ? `${ui.buttons.stats} · ${ui.streak.label(streak)}` : ui.buttons.stats}
+            describedBy={streak > 0 ? streakId : undefined}
+            onClick={() => onOpen("stats")}
+          >
             <ChartNoAxesColumn aria-hidden className="size-6" />
+            {streak > 0 && (
+              // Keyed by the number, so the badge pops again each time the streak grows
+              <span key={streak} id={streakId} className="streak" data-lit={lit ? "" : undefined}>
+                <Flame aria-hidden className="size-2.5" />
+                <span aria-hidden>{streak}</span>
+                <span className="sr-only">{ui.streak.label(streak)}</span>
+              </span>
+            )}
           </IconButton>
           <IconButton label={ui.buttons.settings} onClick={() => onOpen("settings")}>
             <Settings aria-hidden className="size-6" />
@@ -123,10 +156,10 @@ export default function Header({
         />
         <Segmented
           label={ui.language}
-          options={LANGS}
-          value={ready ? lang : null}
-          onChange={onLang}
-          render={(l) => ({ text: LANG_NAMES[l].code, title: LANG_NAMES[l].name, lang: l })}
+          options={VOCABS}
+          value={ready ? vocab : null}
+          onChange={onVocab}
+          render={(v) => ({ text: VOCAB_NAMES[v].code, title: v === "mix" ? ui.mix.title : VOCAB_NAMES[v].name, lang: v === "mix" ? undefined : v })}
         />
       </div>
     </header>

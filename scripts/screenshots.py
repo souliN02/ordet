@@ -32,8 +32,9 @@ def game(solution: str, guesses: list[str], day: int | None = None) -> dict:
     return {"solution": solution, "guesses": guesses, "hard": False, "day": day}
 
 
-def saved(mode: str, games: dict, stats: dict | None = None, theme: str | None = None) -> dict:
-    return {"settings": {"mode": mode, "hard": False, "theme": theme, "contrast": False}, "games": games, "stats": stats or {}, "recent": {}}
+def saved(mode: str, games: dict, stats: dict | None = None, theme: str | None = None, mix: bool = False) -> dict:
+    # "news" is far ahead of any real one: the player has seen it all, so "What's new" stays out of the pictures
+    return {"settings": {"mode": mode, "mix": mix, "hard": False, "theme": theme, "contrast": False}, "games": games, "stats": stats or {}, "recent": {}, "news": 9999}
 
 
 def open_game(browser: Browser, url: str, state: dict, lang: str, **context) -> Page:
@@ -109,7 +110,21 @@ def main() -> None:
         page.wait_for_timeout(500)
         page.screenshot(path=args.out / "stats.png")
 
-        # 4. The GIF: place the greens from the first guess, fill the gaps, flip, win
+        # 4. Mix, won: a Danish and an English guess on the way, and the answer's language under the board
+        streak = {"mix-unlimited": {"played": 9, "wins": 8, "streak": 4, "best": 4, "guesses": [0, 1, 2, 3, 1, 1], "lastDay": None}}
+        page = open_game(
+            browser, args.url, saved("unlimited", {"mix-unlimited": game("fløde", ["crane", "skole", "fløde"])}, streak, mix=True), "en", locale="en-US", color_scheme="light"
+        )
+        page.screenshot(path=args.out / "mix.png")
+
+        # 5. A word for a friend: one that's in no list, so the dialog says to check the spelling
+        page = open_game(browser, args.url, saved("unlimited", {"en-unlimited": game("grape", ["crane"])}), "en", locale="en-US", color_scheme="light")
+        page.get_by_role("button", name="Challenge a friend", exact=True).click()
+        page.get_by_label("Your word").fill("ordet")
+        page.wait_for_timeout(500)
+        page.screenshot(path=args.out / "challenge.png")
+
+        # 6. The GIF: place the greens from the first guess, fill the gaps, flip, win in two (which gets confetti)
         page = open_game(
             browser,
             args.url,

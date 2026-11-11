@@ -20,19 +20,28 @@ Every guess has to be a real five-letter word. After each one, the tiles show ho
 
 ## Features
 
-**Two modes, two languages.** Each language and mode keeps its own game, streak and statistics, so the Danish daily doesn't break the English streak.
+**Two modes, and three ways to pick the words.** Each combination keeps its own game, streak and statistics, so the Danish daily doesn't break the English streak.
 
-| | English | Danish |
-| --- | --- | --- |
-| **Daily** | The same word as that day's NYT Wordle, so you can compare with friends who play it | Ordet's own word of the day, the same for everyone |
-| **Unlimited** | A new word whenever you finish one | The same, in Danish |
+| | English | Danish | Mix |
+| --- | --- | --- | --- |
+| **Daily** | The same word as that day's NYT Wordle, so you can compare with friends who play it | Ordet's own word of the day, the same for everyone | A word that can be either, the same for everyone |
+| **Unlimited** | A new word whenever you finish one | The same, in Danish | The same, without knowing which language is next |
 
 The daily word changes at the player's own midnight.
+
+**Mix: English or Danish?** The third pick on the language switch. The answer can come from either language, guesses from both count, and working out which one you're in is part of the puzzle. More than 1,700 words count in both, so SPORT tells you nothing and an Ø tells you everything. When the game is over, it says which language the word was.
+
+**Challenge a friend.** Type any five letters, a name or an inside joke included, and send the link. Your friend gets six tries and never sees the word. A shared Unlimited result carries its word the same way, so whoever gets it can try the same one.
+
+<p align="center">
+  <img src="docs/mix.png" alt="A Mix game won in three guesses: an English guess, a Danish guess, then FLØDE, and a line under the board saying that FLØDE is Danish" width="250">
+  <img src="docs/challenge.png" alt="The Challenge a friend dialog: ORDET typed in as the word, a note that it isn't in the word list but still works, and the link that carries it" width="250">
+</p>
 
 **Type in any order.** Tap a tile, or use the arrow keys, Home and End, to move the cursor. The letters you already know can go in their spots first, and the next letters fill the gaps around them.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="A guess typed out of order: R, A and E go in their spots first, G and P fill the gaps, then the tiles flip green, bounce, and the statistics open" width="300">
+  <img src="docs/demo.gif" alt="A guess typed out of order: R, A and E go in their spots first, G and P fill the gaps, then the tiles flip green and bounce, confetti flies for a win in two, and the statistics open" width="300">
 </p>
 
 **Real Danish.** The answers are common Danish words, and every inflected form in Den Danske Ordbog counts as a guess, so *huset* and *bøger* work even though they're never the answer. The Danish keyboard has Æ, Ø and Å where a Danish keyboard has them.
@@ -40,11 +49,16 @@ The daily word changes at the player's own midnight.
 **And the rest:**
 
 - Hard mode: every revealed hint has to be used in the next guesses.
-- Statistics per language and mode: games played, win rate, current and best streak, how many guesses each win took, and how many games weren't solved.
+- A hint when you're stuck, outside the Daily: one letter of the answer, which then waits in its slot. It costs a 💡 in the shared result.
+- Statistics per language and mode: games played, win rate, current and best streak, how many guesses each win took, and how many games weren't solved. The current streak sits on the statistics button, and a round number gets confetti. So does a win in one or two.
+- A link to look the word up after a game: Den Danske Ordbog for Danish, Wiktionary for English.
+- Statistics move to another device with a code to copy and paste.
 - Sharing without spoilers: the result as emoji squares, through the share sheet on phones and the clipboard elsewhere.
+- The game answers back a little: a few lines for each kind of win, one for a first guess that hits nothing, and a handful of words it has something to say about.
+- A What's new dialog, shown once to players who were here before an update, and kept in the settings after that.
 - Dark and high contrast themes. Dark follows the system setting until you pick one, and high contrast swaps green and yellow for orange and blue.
-- The physical keyboard works, every guess is read out to screen readers, the dialogs keep focus where it belongs, and animations stop when the system asks for reduced motion.
-- `?lang=da` and `?mode=unlimited` open the game in that language or mode.
+- The physical keyboard works, every guess is read out to screen readers, the dialogs keep focus where it belongs, and animations (the confetti included) stop when the system asks for reduced motion.
+- `?lang=da`, `?lang=mix` and `?mode=unlimited` open the game in that language or mode.
 
 ## How it works
 
@@ -52,12 +66,13 @@ The daily word changes at the player's own midnight.
 app/
   page.tsx            the game (a client component; everything depends on the player's browser)
   api/daily/          GET /api/daily?date=YYYY-MM-DD: the English daily word
-components/           Game (state and flow), Board, Keyboard, Header, the three dialogs
+components/           Game (state and flow), Board, Keyboard, Header, Confetti, the five dialogs
 data/
   ui.ts               all interface text, English and Danish, typed so Danish can't miss a key
   words/              the word lists (see scripts/words/README.md)
-lib/                  pure logic, unit tested: evaluation, hard mode, the row being typed,
-                      daily schedule, statistics, sharing, saved state, word loading
+lib/                  pure logic, unit tested: evaluation, hard mode, hints, the row being typed,
+                      daily schedules, statistics, sharing, challenge and transfer codes,
+                      saved state, word loading
 scripts/
   words/              how the word lists were built, and what was left out by hand
   screenshots.py      makes the pictures in docs/
@@ -69,8 +84,10 @@ A few decisions worth knowing about:
 - **The row being typed is five slots and a cursor** (`lib/input.ts`). A letter fills the cursor's slot and the cursor jumps to the next gap, wrapping back to an earlier one. Once the row is full the cursor parks past the end, so typing straight through behaves exactly like a plain left-to-right game.
 - **The English daily word comes from the server.** The Times has no public API, only the JSON its own game loads, and the browser can't read it (CORS). `/api/daily` fetches it for the player's local date, caches it for a day, and falls back to Ordet's own schedule if the request fails. It only answers for dates within a day of today, so it can't be used to look ahead.
 - **The word lists are curated.** The Danish answers are the most frequent five-letter headwords in DSL's frequency list, and the English ones are common base forms from ENABLE. Both were read through by hand to take out names, slurs and obscure words: 2,040 English and 1,299 Danish answers, with 11,834 and 8,155 accepted guesses.
-- **Saved state is validated.** Progress lives in `localStorage`, which the player controls, so it's parsed field by field and anything malformed is dropped (`lib/save.ts`).
-- **Word lists load on demand.** Each language is its own chunk, fetched the first time that language is played.
+- **Mix has a schedule of its own** (`lib/daily.ts`). A coin flip per day would now and then land on the same language ten days running, and taking turns would give the language away. So every six days are split three and three, each six in its own order. The word is the one that language's own Daily only reaches half a list later, so Mix never has the same word as that day's Daily.
+- **A friend's word travels as a seven-character code** (`lib/challenge.ts`): the word and its language packed into 27 bits, five check bits so a mistyped link is refused instead of becoming a nonsense word, and four Feistel rounds so the word can't be read off the address. It's a disguise, not a secret. The game always takes the answer as a guess, in a list or not, which is what lets a name be the word. The few words the lists refuse even as guesses are refused here too, kept as hashes so the game doesn't carry them in the open.
+- **Saved state is validated.** Progress lives in `localStorage`, which the player controls, so it's parsed field by field and anything malformed is dropped (`lib/save.ts`). A transfer code is read the same way (`lib/transfer.ts`), behind a checksum that catches a code cut short on the way.
+- **Word lists load on demand.** Each language is its own chunk, fetched the first time that language is played. Mix fetches both.
 
 ## Tech
 
